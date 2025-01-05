@@ -1,0 +1,14 @@
+name: GCMC_Plugins
+main: com.example.donatorsplugin.Main
+version: 1.1
+api-version: 1.20
+
+commands:
+  add_to_donators:
+    description: Add a player to the donators list with a specific level and color.
+    usage: /add_to_donators <Player> <Level> <Color/Hex>
+
+permissions:
+  donatorsplugin.add_to_donators:
+    description: Allows adding players to the donators list.
+    default: op
