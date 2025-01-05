@@ -28,6 +28,7 @@ public class Main extends JavaPlugin {
 
         createDonorsFile();
         createRanks("Founder", 6);
+        createRanks("Netherite", 5);
     }
 
     @Override
@@ -58,15 +59,11 @@ public class Main extends JavaPlugin {
         }
     }
 
-
-
     //          Used to replace ChatColor.<COLOR> + String to be down with basic code colors
 
     public static String color(String output){
         return ChatColor.translateAlternateColorCodes('&', output);
     }
-
-
 
     private String getDonationTag(int level) {
         switch (level) {
@@ -91,8 +88,10 @@ public class Main extends JavaPlugin {
     //          This vvv Can be used to create a custom name plate in Tablist, Overhead, and in Chat
 
     private void createRanks(String Name, int Prefix){
-        Team team = scoreboard.registerNewTeam(Name);
-        team.setPrefix(getDonationTag(Prefix) + " ");
+        if (!scoreboard.getTeams().contains(Name)){
+            Team team = scoreboard.registerNewTeam(Name);
+            team.setPrefix(getDonationTag(Prefix) + " ");
+        }
     }
 
 
