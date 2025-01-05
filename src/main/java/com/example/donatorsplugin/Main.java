@@ -8,6 +8,9 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.ScoreboardManager;
+import org.bukkit.scoreboard.Team;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,11 +19,15 @@ public class Main extends JavaPlugin {
 
     private FileConfiguration donorsConfig;
     private File donorsFile;
+    private Scoreboard scoreboard;
 
     @Override
     public void onEnable() {
+        ScoreboardManager manager = Bukkit.getScoreboardManager();
         getLogger().info("DonatorsPlugin has been enabled!");
+
         createDonorsFile();
+        createRanks("Founder", 6);
     }
 
     @Override
@@ -51,22 +58,44 @@ public class Main extends JavaPlugin {
         }
     }
 
+
+
+    //          Used to replace ChatColor.<COLOR> + String to be down with basic code colors
+
+    public static String color(String output){
+        return ChatColor.translateAlternateColorCodes('&', output);
+    }
+
+
+
     private String getDonationTag(int level) {
         switch (level) {
+            case 6:
+                return color("&c☀ Founder ☀");
             case 5:
-                return ChatColor.DARK_RED + "⬥ Netherite ⬥";
+                return color("&4⬥ Netherite ⬥");
             case 4:
-                return ChatColor.AQUA + "◆ Diamond ◆";
+                return color("&b◆ Diamond ◆");
             case 3:
-                return ChatColor.GOLD + "★ Gold ★";
+                return color("&6★ Gold ★");
             case 2:
-                return ChatColor.GRAY + "✧ Silver ✧";
+                return color("&7✧ Silver ✧");
             case 1:
-                return ChatColor.DARK_GRAY + "✦ Bronze ✦";
+                return color("&8✦ Bronze ✦");
             default:
-                return ChatColor.WHITE + "Donator";
+                return color("&fDonator");
         }
     }
+
+
+    //          This vvv Can be used to create a custom name plate in Tablist, Overhead, and in Chat
+
+    private void createRanks(String Name, int Prefix){
+        Team team = scoreboard.registerNewTeam(Name);
+        team.setPrefix(getDonationTag(Prefix) + " ");
+    }
+
+
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -124,8 +153,6 @@ public class Main extends JavaPlugin {
 
             return true;
         }
-
-        // Hello
 
         return false;
     }
