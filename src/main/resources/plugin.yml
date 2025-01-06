@@ -10,6 +10,15 @@ commands:
   setnickname:
     description: Set a custom nickname.
     usage: /setnickname <nickname>
+  tpa:
+    description: Request to teleport to another player.
+    usage: /tpa <player>
+  tpaccept:
+    description: Accept a teleport request.
+    usage: /tpaccept
+  tpdeny:
+    description: Deny a teleport request.
+    usage: /tpdeny
 
 permissions:
   gcmcPlugin.add_to_donators:
