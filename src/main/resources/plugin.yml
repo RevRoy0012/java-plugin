@@ -6,10 +6,10 @@ api-version: 1.20
 commands:
   add_to_donators:
     description: Add a player to the donators list with a specific level and color.
-    usage: /add_to_donators <Player> <Level> <Color/Hex>
-  setnickname:
+    usage: /add_to_donators <Player> <Level>
+  setnick:
     description: Set a custom nickname.
-    usage: /setnickname <nickname>
+    usage: /setnick <nickname>
   tpa:
     description: Request to teleport to another player.
     usage: /tpa <player>
@@ -24,6 +24,6 @@ permissions:
   gcmcPlugin.add_to_donators:
     description: Allows adding players to the donators list.
     default: op
-  gcmcPlugin.setnickname:
+  gcmcPlugin.setnick:
     description: Allows players to set their nickname.
     default: true

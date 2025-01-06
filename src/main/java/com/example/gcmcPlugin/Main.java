@@ -12,9 +12,11 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
@@ -31,12 +33,14 @@ public class Main extends JavaPlugin implements Listener {
     private File nicknamesFile;
     private final Map<UUID, TeleportRequest> teleportRequests = new HashMap<>();
     private final Map<UUID, BukkitRunnable> teleportTasks = new HashMap<>();
+    private Scoreboard scoreboard;
 
     @Override
     public void onEnable() {
         getLogger().info("gcmcPlugin has been enabled!");
         createDonorsFile();
         createNicknamesFile();
+        scoreboard = Bukkit.getScoreboardManager().getMainScoreboard();
         Bukkit.getPluginManager().registerEvents(this, this);
     }
 
@@ -91,9 +95,131 @@ public class Main extends JavaPlugin implements Listener {
         }
     }
 
+    private void createRank(String teamName, String prefix) {
+        if (!scoreboard.getTeams().contains(scoreboard.getTeam(teamName))) {
+            Team team = scoreboard.registerNewTeam(teamName);
+            team.setPrefix(prefix + ChatColor.RESET + " ");
+        }
+    }
+
+    private void updatePlayerRank(Player player) {
+        int level = donorsConfig.getInt("donors." + player.getName() + ".level", -1);
+        String nickname = nicknamesConfig.getString(player.getUniqueId().toString());
+        String nameToUse = nickname != null ? nickname : player.getName();
+
+        ChatColor color = ChatColor.WHITE;
+        String tag = "";
+
+        switch (level) {
+            case 5:
+                color = ChatColor.DARK_RED;
+                tag = ChatColor.DARK_RED + "[Netherite]";
+                break;
+            case 4:
+                color = ChatColor.AQUA;
+                tag = ChatColor.AQUA + "[Diamond]";
+                break;
+            case 3:
+                color = ChatColor.GOLD;
+                tag = ChatColor.GOLD + "[Gold]";
+                break;
+            case 2:
+                color = ChatColor.GRAY;
+                tag = ChatColor.GRAY + "[Silver]";
+                break;
+            case 1:
+                color = ChatColor.DARK_GRAY;
+                tag = ChatColor.DARK_GRAY + "[Bronze]";
+                break;
+        }
+
+        String displayName = (tag.isEmpty() ? "" : tag + " ") + color + nameToUse;
+
+        player.setDisplayName(displayName);
+        player.setPlayerListName(displayName);
+        player.setCustomName(displayName);
+
+        String teamName = "donor_" + level;
+        createRank(teamName, tag);
+        Team team = scoreboard.getTeam(teamName);
+        if (team != null) {
+            team.addEntry(player.getName());
+        }
+    }
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (command.getName().equalsIgnoreCase("tpa")) {
+        if (command.getName().equalsIgnoreCase("add_to_donators")) {
+            if (!sender.hasPermission("gcmcPlugin.add_to_donators")) {
+                sender.sendMessage(ChatColor.RED + "You do not have permission to use this command.");
+                return true;
+            }
+
+            if (args.length < 2) {
+                sender.sendMessage(ChatColor.RED + "Usage: /add_to_donators <username> <level>");
+                return true;
+            }
+
+            String username = args[0];
+            int level;
+            try {
+                level = Integer.parseInt(args[1]);
+            } catch (NumberFormatException e) {
+                sender.sendMessage(ChatColor.RED + "Invalid level! Please enter a number between 1 and 5.");
+                return true;
+            }
+
+            if (level < 1 || level > 5) {
+                sender.sendMessage(ChatColor.RED + "Invalid level! Please enter a number between 1 and 5.");
+                return true;
+            }
+
+            Player target = Bukkit.getPlayer(username);
+            if (target == null) {
+                sender.sendMessage(ChatColor.RED + "Player not found!");
+                return true;
+            }
+
+            donorsConfig.set("donors." + target.getName() + ".level", level);
+            saveDonors();
+
+            updatePlayerRank(target);
+            sender.sendMessage(ChatColor.GREEN + "Donation level applied for " + username + " with level " + level + ".");
+
+            return true;
+        } else if (command.getName().equalsIgnoreCase("setnick")) {
+            if (!(sender instanceof Player)) {
+                sender.sendMessage(ChatColor.RED + "Only players can use this command!");
+                return true;
+            }
+
+            Player player = (Player) sender;
+
+            if (args.length < 1) {
+                player.sendMessage(ChatColor.RED + "Usage: /setnick <nickname>");
+                return true;
+            }
+
+            String nickname = args[0];
+
+            if (nickname.length() > 16) {
+                player.sendMessage(ChatColor.RED + "Nickname is too long! Maximum length is 16 characters.");
+                return true;
+            }
+
+            if (!nickname.matches("^[a-zA-Z0-9_]+$")) {
+                player.sendMessage(ChatColor.RED + "Nickname contains invalid characters! Use only letters, numbers, and underscores.");
+                return true;
+            }
+
+            nicknamesConfig.set(player.getUniqueId().toString(), nickname);
+            saveNicknames();
+
+            updatePlayerRank(player);
+            player.sendMessage(ChatColor.GREEN + "Your nickname has been set to " + nickname + "!");
+
+            return true;
+        } else if (command.getName().equalsIgnoreCase("tpa")) {
             if (!(sender instanceof Player)) return true;
             Player requester = (Player) sender;
             if (args.length < 1) {
@@ -193,6 +319,7 @@ public class Main extends JavaPlugin implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         teleportRequests.entrySet().removeIf(entry -> entry.getValue().getRequester().equals(player));
+        updatePlayerRank(player);
     }
 
     @EventHandler
