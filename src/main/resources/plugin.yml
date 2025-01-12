@@ -1,15 +1,21 @@
 name: gcmcPlugin
 main: com.example.gcmcPlugin.Main
-version: 1.2
+version: 1.3
 api-version: 1.20
 
 commands:
   add_to_donators:
     description: Add a player to the donators list with a specific level and color.
     usage: /add_to_donators <Player> <Level>
+  remove_from_donators:
+    description: Remove a player from the donators list.
+    usage: /remove_from_donators <Player>
   setnick:
     description: Set a custom nickname.
     usage: /setnick <nickname>
+  removenick:
+    description: Remove a custom nickname.
+    usage: /removenick
   tpa:
     description: Request to teleport to another player.
     usage: /tpa <player>
@@ -24,6 +30,21 @@ permissions:
   gcmcPlugin.add_to_donators:
     description: Allows adding players to the donators list.
     default: op
+  gcmcPlugin.remove_from_donators:
+    description: Allows removing players from the donators list.
+    default: op
   gcmcPlugin.setnick:
     description: Allows players to set their nickname.
+    default: true
+  gcmcPlugin.removenick:
+    description: Allows players to remove their nickname.
+    default: true
+  gcmcPlugin.tpa:
+    description: Allows players to request teleportation to others.
+    default: true
+  gcmcPlugin.tpaccept:
+    description: Allows players to accept teleportation requests.
+    default: true
+  gcmcPlugin.tpdeny:
+    description: Allows players to deny teleportation requests.
     default: true
